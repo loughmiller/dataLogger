@@ -14,11 +14,14 @@ Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 
 uint32_t newConnection = 0;
-uint32_t lightning = 0;
 bool connected = false;
 
 void newConnectionCallback(uint32_t nodeId);
 void receivedCallback(uint32_t from, String &msg);
+
+
+uint_fast32_t lastMsgTime = 0;
+float lastMsg = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -33,6 +36,7 @@ void setup() {
   mesh.setDebugMsgTypes( ERROR | STARTUP );  // set before init() so that you can see startup messages
   mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT );
   mesh.onNewConnection(&newConnectionCallback);
+  mesh.onReceive(&receivedCallback);
 
   Serial.println("setup complete");
 }
@@ -66,6 +70,11 @@ void loop() {
 
     Serial.print("connected: ");
     Serial.println(connected);
+
+    Serial.print("Last message: ");
+    Serial.print(lastMsgTime);
+    Serial.print("\tvoltage: ");
+    Serial.println(lastMsg);
   }
 
   if (newConnection) {
@@ -83,5 +92,7 @@ void newConnectionCallback(uint32_t nodeId) {
 }
 
 void receivedCallback(uint32_t from, String &msg) {
-  Serial.printf("Received from %u msg=%s\n", from, msg.c_str());
+  // Serial.printf("Received from %u msg=%s\n", from, msg.c_str());
+  lastMsgTime = loggingTimestamp;
+  lastMsg = msg.toFloat();
 }
